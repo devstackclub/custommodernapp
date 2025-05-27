@@ -10,23 +10,23 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Publish
-      run: dotnet publish --configuration Release --output ./publish --no-build
+      - name: Publish
+        run: dotnet publish --configuration Release --output ./publish --no-build
 
-    New-NetFirewallRule -DisplayName "Web Deploy 8172" -Direction Inbound -LocalPort 8172 -Protocol TCP -Action Allow    - name: Deploy to IIS using Web Deploy
-      run: |
-        & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync -source:contentPath="$(pwd)\publish" -dest:contentPath="C:\inetpub\wwwroot",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" -allowUntrusted
+      - name: Deploy to IIS using Web Deploy
+        run: |
+          & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync -source:contentPath="$(pwd)\publish" -dest:contentPath="C:\inetpub\wwwroot\YourApp",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" -allowUntrusted
