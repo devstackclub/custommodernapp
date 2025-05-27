@@ -33,14 +33,18 @@ jobs:
         with:
           name: blazor-app
           path: ./publish
-      - name: Stop IIS App Pool
-        run: |
-          Import-Module WebAdministration
-          Stop-WebAppPool -Name "DefaultAppPool"
-      - name: Deploy to IIS folder
-        run: |
-          Remove-Item -Recurse -Force "C:\inetpub\wwwroot\YourApp"
-          Copy-Item -Recurse -Path ".\publish\*" -Destination "C:\inetpub\wwwroot\"
-      - name: Start IIS App Pool
-        run: |
-          Start-WebAppPool -Name "DefaultAppPool"
+
+      - name: Deploy to IIS via WinRM
+        uses: appleboy/winrm-action@v2.3.0
+        with:
+          host: ${{ secrets.IIS_SERVER }}
+          username: ${{ secrets.IIS_USERNAME }}
+          password: ${{ secrets.IIS_PASSWORD }}
+          port: 5986 # Use 5985 for HTTP, 5986 for HTTPS
+          protocol: https
+          script: |
+            Import-Module WebAdministration
+            Stop-WebAppPool -Name "DefaultAppPool"
+            Remove-Item -Recurse -Force "C:\inetpub\wwwroot\YourApp"
+            Copy-Item -Recurse -Path "${{ github.workspace }}\publish\*" -Destination "C:\inetpub\wwwroot\"
+            Start-WebAppPool -Name "DefaultAppPool"
