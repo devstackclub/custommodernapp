@@ -1,32 +1,50 @@
-name: Deploy .NET 8 App to IIS
+name: Build and Release Blazor App to IIS
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: self-hosted
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/checkout@v4
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-
       - name: Restore dependencies
         run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
       - name: Publish
-        run: dotnet publish --configuration Release --output ./publish --no-build
+        run: dotnet publish -c Release -o ./publish
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blazor-app
+          path: ./publish
 
-      - name: Deploy to IIS using Web Deploy
-        run: |
-          & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync -source:contentPath="$(pwd)\publish" -dest:contentPath="C:\inetpub\wwwroot\YourApp",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" -allowUntrusted
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    environment: test
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: blazor-app
+          path: ./publish
+
+      - name: Deploy to IIS via WinRM
+        uses: appleboy/winrm-action@v2.3.0
+        with:
+          host: ${{ secrets.IIS_SERVER }}
+          username: ${{ secrets.IIS_USERNAME }}
+          password: ${{ secrets.IIS_PASSWORD }}
+          port: 5986 # Use 5985 for HTTP, 5986 for HTTPS
+          protocol: https
+          script: |
+            Import-Module WebAdministration
+            Stop-WebAppPool -Name "DefaultAppPool"
+            Remove-Item -Recurse -Force "C:\inetpub\wwwroot"
+            Copy-Item -Recurse -Path "${{ github.workspace }}\publish\*" -Destination "C:\inetpub\wwwroot\"
+            Start-WebAppPool -Name "DefaultAppPool"
