@@ -3,6 +3,9 @@ name: Release Blazor App to IIS
 on:
   workflow_dispatch:
 
+env:
+  name: test
+
 jobs:
   deploy:
     runs-on: self-hosted
