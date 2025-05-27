@@ -1,7 +1,10 @@
 name: Release Blazor App to IIS
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Artifact of .NET 8 Blazor App"] # Replace with the exact name of your build workflow
+    types:
+      - completed
 
 jobs:
   deploy:
