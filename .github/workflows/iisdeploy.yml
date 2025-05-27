@@ -3,13 +3,10 @@ name: Release Blazor App to IIS
 on:
   workflow_dispatch:
 
-env:
-  name: test
-
 jobs:
   deploy:
+    environment: test
     runs-on: self-hosted
-
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v4
@@ -17,15 +14,14 @@ jobs:
           name: blazor-app
           path: ./publish
 
-      - name: Deploy to IIS via WinRM
-        uses: microsoft/psremotetools@v1
-        with:
-          host: ${{ secrets.IIS_SERVER }}
-          username: ${{ secrets.IIS_USERNAME }}
-          password: ${{ secrets.IIS_PASSWORD }}
-          inline: |
-            Import-Module WebAdministration
-            Stop-Website -Name "ModernApp"
-            Remove-Item -Recurse -Force "C:\inetpub\wwwroot\ModernApp\*"
-            Copy-Item -Path "${{ github.workspace }}\publish\*" -Destination "C:\inetpub\wwwroot\ModernApp\" -Recurse
-            Start-Website -Name "ModernApp"
+      - name: Stop IIS App Pool
+        run: |
+          Import-Module WebAdministration
+          Stop-WebAppPool -Name "DefaultAppPool"
+      - name: Deploy to IIS folder
+        run: |
+          Remove-Item -Recurse -Force "C:\inetpub\wwwroot\YourApp"
+          Copy-Item -Recurse -Path ".\publish\*" -Destination "C:\inetpub\wwwroot\"
+      - name: Start IIS App Pool
+        run: |
+          Start-WebAppPool -Name "DefaultAppPool"
