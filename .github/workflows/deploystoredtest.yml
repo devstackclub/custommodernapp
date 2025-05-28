@@ -1,0 +1,22 @@
+name: Deploy Stored Artifact to Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download artifact from last successful Build workflow
+        uses: actions/download-artifact@v4
+        with:
+          name: app-artifact
+          path: ./app
+          workflow: build.yml
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Test
+        run: |
+          echo "Deploying to TEST environment"
+          ls ./app
