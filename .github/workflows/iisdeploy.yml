@@ -1,9 +1,7 @@
-name: Build and Deploy HelloWorldWeb
+name: Web Deploy to Environment
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
