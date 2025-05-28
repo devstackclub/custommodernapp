@@ -24,6 +24,32 @@ jobs:
         run: choco install webdeploy --no-progress
         shell: powershell
 
+      name: Web Deploy to Environment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    environment: test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish the app
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Install Web Deploy
+        run: choco install webdeploy --no-progress
+        shell: powershell
+
       - name: Deploy to IIS with MSDeploy
         shell: powershell
         run: |
