@@ -19,7 +19,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Publish the app
-        run: dotnet publish HelloWorldWeb/HelloWorldWeb.csproj -c Release -o ./publish
+        run: dotnet publish -c Release -o ./publish
 
       - name: Install Web Deploy
         run: choco install webdeploy --no-progress
