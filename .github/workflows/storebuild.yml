@@ -1,4 +1,4 @@
-name: Build
+name: Store Build
 
 on:
   workflow_dispatch:
