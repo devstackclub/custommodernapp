@@ -1,35 +1,26 @@
-name: Build
+name: Deploy to Test
 
 on:
   workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Run ID of the Build workflow to deploy"
+        required: true
 
 jobs:
-  build:
+  deploy:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build project
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Publish app
-        run: dotnet publish -c Release -o publish_output
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Download artifact from specific Build run
+        uses: actions/download-artifact@v4
         with:
           name: app-artifact
-          path: publish_output
+          path: ./app
+          run-id: ${{ github.event.inputs.build_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Output workflow run ID
-        run: echo "Build completed. Use this run ID for deployments: ${{ github.run_id }}"
+      - name: Deploy to Test
+        run: |
+          echo "Deploying to TEST environment"
+          ls ./app
