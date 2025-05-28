@@ -30,3 +30,6 @@ jobs:
         with:
           name: app-artifact
           path: publish_output
+
+      - name: Output workflow run ID
+        run: echo "✅ Build completed. Use this run ID for deployment: ${{ github.run_id }}"
