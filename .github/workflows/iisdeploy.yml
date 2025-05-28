@@ -26,9 +26,10 @@ jobs:
 
       - name: Deploy to IIS with MSDeploy
         run: |
+          $publishPath = "${{ github.workspace }}\publish"
           & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
             -verb:sync `
-            -source:contentPath="publish" `
-            -dest:contentPath="Default Web Site/HelloWorld",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
-            -allowUntrusted
-        shell: powershell
+            -source:contentPath="$publishPath" `
+            -dest:iisApp="Default Web Site/HelloWorld",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
+           -allowUntrusted
+          shell: powershell
