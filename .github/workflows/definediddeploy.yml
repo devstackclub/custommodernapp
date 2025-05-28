@@ -1,0 +1,22 @@
+name: Deploy PRE ID to Test
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: 'Run ID of the build workflow'
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact using run-id
+        uses: actions/download-artifact@v4
+        with:
+          name: app-artifact
+          path: ./app
+          run-id: ${{ github.event.inputs.build_run_id }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to Test
+        run: |
+          echo "Deploying to TEST environment"
+          ls ./app
