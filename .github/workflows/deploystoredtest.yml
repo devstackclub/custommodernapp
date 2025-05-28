@@ -1,4 +1,4 @@
-name: Deploy Stored to Test
+name: Select Deploy Stored to Test
 
 on:
   workflow_dispatch:
