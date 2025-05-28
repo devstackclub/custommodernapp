@@ -1,31 +1,34 @@
-name: Deploy .NET 8 App to IIS
-
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
-    runs-on: self-hosted
-    environment: test
+  build-and-deploy:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Publish the app
+        run: dotnet publish HelloWorldWeb/HelloWorldWeb.csproj -c Release -o ./publish
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+      - name: Install Web Deploy
+        run: choco install webdeploy --no-progress
+        shell: powershell
 
-      - name: Publish
-        run: dotnet publish --configuration Release --output ./publish --no-build
-
-      - name: Deploy to IIS using Web Deploy
+      - name: Deploy to IIS with MSDeploy
         run: |
-            & "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe" -verb:sync -source:contentPath="$(pwd)\\publish" -dest:contentPath,path="C:\\inetpub\\wwwroot\\YourApp",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site",userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" -allowUntrusted
+          & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
+            -verb:sync `
+            -source:contentPath="publish" `
+            -dest:contentPath="Default Web Site/HelloWorld",computerName="https://${{ secrets.IIS_HOSTNAME }}:8172/msdeploy.axd?site=Default Web Site", `
+              userName="${{ secrets.IIS_USERNAME }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
+            -allowUntrusted
+        shell: powershell
